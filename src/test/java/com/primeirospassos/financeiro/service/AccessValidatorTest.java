@@ -50,4 +50,11 @@ class AccessValidatorTest {
 
         assertThrows(AccessDeniedException.class, () -> accessValidator.validateAccess("esc-1", user, 10L, false));
     }
+
+    @Test
+    void shouldBlockInvalidUserContext() {
+        CurrentUser user = new CurrentUser(null, "esc-1", "ADMIN", "Bearer token", "sess-1");
+
+        assertThrows(AccessDeniedException.class, () -> accessValidator.validateAccess("esc-1", user, 10L, false));
+    }
 }
