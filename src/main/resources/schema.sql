@@ -44,3 +44,15 @@ CREATE TABLE IF NOT EXISTS financeiro.pagamentos (
 CREATE INDEX IF NOT EXISTS idx_pagamentos_public_escola ON financeiro.pagamentos (public_id, escola_id);
 CREATE INDEX IF NOT EXISTS idx_pagamentos_escola_aluno ON financeiro.pagamentos (escola_id, aluno_id);
 CREATE INDEX IF NOT EXISTS idx_pagamentos_transacao_provider_escola ON financeiro.pagamentos (transacao_externa, provider, escola_id);
+
+CREATE TABLE IF NOT EXISTS financeiro.antifraude_registros (
+    id BIGSERIAL PRIMARY KEY,
+    pagamento_public_id UUID NOT NULL,
+    escola_id VARCHAR(100) NOT NULL,
+    aluno_id BIGINT NOT NULL,
+    motivo VARCHAR(255) NOT NULL,
+    criado_em TIMESTAMP NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_antifraude_pagamento_public ON financeiro.antifraude_registros (pagamento_public_id);
+CREATE INDEX IF NOT EXISTS idx_antifraude_escola_aluno ON financeiro.antifraude_registros (escola_id, aluno_id);
