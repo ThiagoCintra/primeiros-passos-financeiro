@@ -1,6 +1,7 @@
 package com.primeirospassos.financeiro.security;
 
 import com.primeirospassos.financeiro.integration.auth.SessionResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -11,9 +12,12 @@ import java.util.concurrent.ConcurrentMap;
 @Component
 public class SessionCacheService {
 
-    private static final long TTL_SECONDS = 30;
-
+    private final long ttlSeconds;
     private final ConcurrentMap<String, CacheEntry> cache = new ConcurrentHashMap<>();
+
+    public SessionCacheService(@Value("${session.cache.ttl-seconds:30}") long ttlSeconds) {
+        this.ttlSeconds = ttlSeconds;
+    }
 
     public Optional<SessionResponse> getValid(String sessionId) {
         CacheEntry entry = cache.get(sessionId);
@@ -29,7 +33,7 @@ public class SessionCacheService {
     }
 
     public void put(String sessionId, SessionResponse sessionResponse) {
-        cache.put(sessionId, new CacheEntry(sessionResponse, Instant.now().plusSeconds(TTL_SECONDS)));
+        cache.put(sessionId, new CacheEntry(sessionResponse, Instant.now().plusSeconds(ttlSeconds)));
     }
 
     private record CacheEntry(SessionResponse session, Instant expiresAt) {

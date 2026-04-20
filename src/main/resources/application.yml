@@ -27,6 +27,21 @@ login:
   service:
     url: ${LOGIN_SERVICE_URL:http://login-service:8080}
 
+session:
+  cache:
+    ttl-seconds: ${SESSION_CACHE_TTL_SECONDS:30}
+
+rate-limit:
+  pagamentos:
+    limit: ${PAGAMENTOS_RATE_LIMIT:5}
+    window-seconds: ${PAGAMENTOS_RATE_LIMIT_WINDOW_SECONDS:60}
+
+antifraude:
+  valor-alto-limite: ${ANTIFRAUDE_VALOR_ALTO_LIMITE:5000}
+  max-tentativas: ${ANTIFRAUDE_MAX_TENTATIVAS:3}
+  janela-tentativas-minutos: ${ANTIFRAUDE_JANELA_TENTATIVAS_MINUTOS:10}
+  janela-duplicidade-minutos: ${ANTIFRAUDE_JANELA_DUPLICIDADE_MINUTOS:5}
+
 app:
   security:
     jwt-secret: ${JWT_SECRET:change-this-secret-change-this-secret-12345}
