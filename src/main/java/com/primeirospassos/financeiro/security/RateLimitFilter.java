@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -42,7 +43,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String key = UserContextHolder.get()
                 .map(user -> user.userId() + ":" + user.sessionId())
-                .orElseGet(request::getRemoteAddr);
+                .orElseGet(() -> {
+                    if (SecurityContextHolder.getContext().getAuthentication() != null) {
+                        return SecurityContextHolder.getContext().getAuthentication().getName();
+                    }
+                    return "anonymous";
+                });
 
         long now = Instant.now().getEpochSecond();
         Deque<Long> timestamps = requestsByKey.computeIfAbsent(key, ignored -> new ArrayDeque<>());

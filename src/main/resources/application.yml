@@ -30,6 +30,7 @@ login:
 session:
   cache:
     ttl-seconds: ${SESSION_CACHE_TTL_SECONDS:30}
+    fallback-max-age-seconds: ${SESSION_CACHE_FALLBACK_MAX_AGE_SECONDS:300}
 
 rate-limit:
   pagamentos:
