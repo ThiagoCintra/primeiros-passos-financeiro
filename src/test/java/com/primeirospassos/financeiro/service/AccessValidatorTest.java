@@ -24,21 +24,21 @@ class AccessValidatorTest {
 
     @Test
     void shouldAllowAdminWrite() {
-        CurrentUser user = new CurrentUser("esc-1", "ADMIN", "Bearer token");
+        CurrentUser user = new CurrentUser(1L, "esc-1", "ADMIN", "Bearer token", "sess-1");
 
         assertDoesNotThrow(() -> accessValidator.validateAccess("esc-1", user, 10L, true));
     }
 
     @Test
     void shouldBlockResponsavelWrite() {
-        CurrentUser user = new CurrentUser("esc-1", "RESPONSAVEL", "Bearer token");
+        CurrentUser user = new CurrentUser(1L, "esc-1", "RESPONSAVEL", "Bearer token", "sess-1");
 
         assertThrows(AccessDeniedException.class, () -> accessValidator.validateAccess("esc-1", user, 10L, true));
     }
 
     @Test
     void shouldValidateOwnershipForResponsavelRead() {
-        CurrentUser user = new CurrentUser("esc-1", "RESPONSAVEL", "Bearer token");
+        CurrentUser user = new CurrentUser(1L, "esc-1", "RESPONSAVEL", "Bearer token", "sess-1");
         when(alunosClient.alunoPertenceAoResponsavel(10L, "Bearer token")).thenReturn(true);
 
         assertDoesNotThrow(() -> accessValidator.validateAccess("esc-1", user, 10L, false));
@@ -46,7 +46,7 @@ class AccessValidatorTest {
 
     @Test
     void shouldBlockDifferentEscolaId() {
-        CurrentUser user = new CurrentUser("esc-2", "ADMIN", "Bearer token");
+        CurrentUser user = new CurrentUser(1L, "esc-2", "ADMIN", "Bearer token", "sess-1");
 
         assertThrows(AccessDeniedException.class, () -> accessValidator.validateAccess("esc-1", user, 10L, false));
     }

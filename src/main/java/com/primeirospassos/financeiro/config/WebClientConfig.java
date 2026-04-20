@@ -14,4 +14,11 @@ public class WebClientConfig {
                 .baseUrl(alunosServiceUrl)
                 .build();
     }
+
+    @Bean
+    public WebClient authWebClient(@Value("${login.service.url}") String loginServiceUrl) {
+        return WebClient.builder()
+                .baseUrl(loginServiceUrl)
+                .build();
+    }
 }

@@ -23,6 +23,10 @@ alunos:
   service:
     url: ${ALUNOS_SERVICE_URL:http://alunos-service:8080}
 
+login:
+  service:
+    url: ${LOGIN_SERVICE_URL:http://login-service:8080}
+
 app:
   security:
     jwt-secret: ${JWT_SECRET:change-this-secret-change-this-secret-12345}

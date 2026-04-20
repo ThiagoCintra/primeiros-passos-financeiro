@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -31,9 +32,11 @@ public class PagamentoService {
     private final FinanceiroMapper mapper;
     private final AccessValidator accessValidator;
     private final AlunosClient alunosClient;
+    private final AntifraudeService antifraudeService;
 
     @Transactional
     public PagamentoResponse criar(CreatePagamentoRequest request, CurrentUser user) {
+        accessValidator.validateUserContext(user);
         accessValidator.validateAdmin(user);
         alunosClient.buscarAlunoPorId(request.getAlunoId(), user.token())
                 .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado"));
@@ -51,11 +54,18 @@ public class PagamentoService {
         pagamento.setTransacaoExterna(providerResult.transacaoExterna());
         pagamento.setStatus(providerResult.status());
 
-        return mapper.toResponse(pagamentoRepository.save(pagamento));
+        Optional<String> fraude = antifraudeService.avaliar(request, user);
+        fraude.ifPresent(reason -> pagamento.setStatus(PagamentoStatus.SUSPEITO));
+
+        Pagamento salvo = pagamentoRepository.save(pagamento);
+        fraude.ifPresent(reason -> antifraudeService.registrarSuspeita(salvo, reason));
+
+        return mapper.toResponse(salvo);
     }
 
     @Transactional
     public PagamentoResponse confirmar(UUID publicId, CurrentUser user) {
+        accessValidator.validateUserContext(user);
         Pagamento pagamento = buscarPorPublicIdEEscola(publicId, user.escolaId());
         accessValidator.validateAccess(pagamento.getEscolaId(), user, pagamento.getAlunoId(), true);
 
@@ -68,6 +78,7 @@ public class PagamentoService {
 
     @Transactional
     public PagamentoResponse cancelar(UUID publicId, CurrentUser user) {
+        accessValidator.validateUserContext(user);
         Pagamento pagamento = buscarPorPublicIdEEscola(publicId, user.escolaId());
         accessValidator.validateAccess(pagamento.getEscolaId(), user, pagamento.getAlunoId(), true);
 
@@ -80,6 +91,8 @@ public class PagamentoService {
 
     @Transactional(readOnly = true)
     public List<PagamentoResponse> listar(CurrentUser user) {
+        accessValidator.validateUserContext(user);
+
         List<Pagamento> pagamentos;
         if (user.isAdmin()) {
             pagamentos = pagamentoRepository.findAllByEscolaId(user.escolaId());

@@ -24,9 +24,12 @@ public class ResumoService {
     private final DebitoAlunoRepository debitoAlunoRepository;
     private final PagamentoRepository pagamentoRepository;
     private final AlunosClient alunosClient;
+    private final AccessValidator accessValidator;
 
     @Transactional(readOnly = true)
     public ResumoResponse gerar(CurrentUser user) {
+        accessValidator.validateUserContext(user);
+
         if (user.isAdmin()) {
             return ResumoResponse.builder()
                     .totalEntradas(movimentacaoRepository.sumByEscolaAndTipo(user.escolaId(), MovimentacaoTipo.ENTRADA))

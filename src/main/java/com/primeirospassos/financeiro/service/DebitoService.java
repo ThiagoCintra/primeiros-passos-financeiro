@@ -20,9 +20,12 @@ public class DebitoService {
     private final DebitoAlunoRepository debitoAlunoRepository;
     private final FinanceiroMapper mapper;
     private final AlunosClient alunosClient;
+    private final AccessValidator accessValidator;
 
     @Transactional(readOnly = true)
     public List<DebitoResponse> listar(CurrentUser user) {
+        accessValidator.validateUserContext(user);
+
         List<DebitoAluno> debitos;
         if (user.isAdmin()) {
             debitos = debitoAlunoRepository.findAllByEscolaId(user.escolaId());

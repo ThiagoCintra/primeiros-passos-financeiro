@@ -47,12 +47,15 @@ class PagamentoServiceTest {
     @Mock
     private AlunosClient alunosClient;
 
+    @Mock
+    private AntifraudeService antifraudeService;
+
     @InjectMocks
     private PagamentoService pagamentoService;
 
     @Test
     void shouldCreatePayment() {
-        CurrentUser user = new CurrentUser("esc-1", "ADMIN", "Bearer token");
+        CurrentUser user = new CurrentUser(1L, "esc-1", "ADMIN", "Bearer token", "sess-1");
         CreatePagamentoRequest request = new CreatePagamentoRequest();
         request.setAlunoId(1L);
         request.setValor(BigDecimal.TEN);
@@ -62,6 +65,7 @@ class PagamentoServiceTest {
         when(paymentProviderRegistry.resolve(PaymentMethod.PIX)).thenReturn(provider);
         when(provider.createPayment(any(Pagamento.class))).thenReturn(new PaymentProviderResult("PIX", "TX-1", PagamentoStatus.PROCESSANDO));
         when(alunosClient.buscarAlunoPorId(1L, "Bearer token")).thenReturn(Optional.of(new AlunoDto()));
+        when(antifraudeService.avaliar(request, user)).thenReturn(Optional.empty());
         when(pagamentoRepository.save(any(Pagamento.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         assertEquals("PIX", pagamentoService.criar(request, user).getProvider());
@@ -70,7 +74,7 @@ class PagamentoServiceTest {
 
     @Test
     void shouldFailWhenAlunoNotFound() {
-        CurrentUser user = new CurrentUser("esc-1", "ADMIN", "Bearer token");
+        CurrentUser user = new CurrentUser(1L, "esc-1", "ADMIN", "Bearer token", "sess-1");
         CreatePagamentoRequest request = new CreatePagamentoRequest();
         request.setAlunoId(999L);
         request.setValor(BigDecimal.ONE);

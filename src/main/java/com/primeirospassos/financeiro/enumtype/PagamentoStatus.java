@@ -4,5 +4,6 @@ public enum PagamentoStatus {
     PENDENTE,
     PROCESSANDO,
     CONFIRMADO,
-    CANCELADO
+    CANCELADO,
+    SUSPEITO
 }

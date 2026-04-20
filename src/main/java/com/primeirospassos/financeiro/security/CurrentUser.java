@@ -1,6 +1,7 @@
 package com.primeirospassos.financeiro.security;
 
-public record CurrentUser(String escolaId, String role, String token) {
+public record CurrentUser(Long userId, String escolaId, String role, String token, String sessionId) {
+
     public boolean isAdmin() {
         return "ADMIN".equalsIgnoreCase(role);
     }
