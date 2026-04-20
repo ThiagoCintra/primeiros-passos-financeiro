@@ -12,7 +12,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -45,9 +47,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 .map(user -> user.userId() + ":" + user.sessionId())
                 .orElseGet(() -> {
                     if (SecurityContextHolder.getContext().getAuthentication() != null) {
-                        return SecurityContextHolder.getContext().getAuthentication().getName();
+                        String name = SecurityContextHolder.getContext().getAuthentication().getName();
+                        if (name != null && !name.isBlank()) {
+                            return name;
+                        }
                     }
-                    return "anonymous";
+                    return request.getRemoteAddr() + ":" + request.getHeader("User-Agent");
                 });
 
         long now = Instant.now().getEpochSecond();
@@ -78,15 +83,17 @@ public class RateLimitFilter extends OncePerRequestFilter {
             return;
         }
 
+        List<String> keysToRemove = new ArrayList<>();
         requestsByKey.forEach((key, timestamps) -> {
             synchronized (timestamps) {
                 while (!timestamps.isEmpty() && timestamps.peekFirst() <= nowEpochSecond - windowSeconds) {
                     timestamps.pollFirst();
                 }
                 if (timestamps.isEmpty()) {
-                    requestsByKey.remove(key, timestamps);
+                    keysToRemove.add(key);
                 }
             }
         });
+        keysToRemove.forEach(key -> requestsByKey.remove(key));
     }
 }

@@ -15,7 +15,7 @@ public class AccessValidator {
     public void validateAccess(String resourceEscolaId, CurrentUser user, Long alunoId, boolean writeOperation) {
         validateUserContext(user);
 
-        if (!resourceEscolaId.equals(user.escolaId())) {
+        if (resourceEscolaId == null || !resourceEscolaId.equals(user.escolaId())) {
             throw new AccessDeniedException("escolaId não autorizado");
         }
 

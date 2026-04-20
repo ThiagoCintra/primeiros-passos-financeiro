@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -58,8 +60,13 @@ public class SessionCacheService {
             return;
         }
         Instant now = Instant.now();
-        cache.entrySet().removeIf(entry ->
-                entry.getValue().createdAt().plusSeconds(fallbackMaxAgeSeconds).isBefore(now));
+        List<String> keysToRemove = new ArrayList<>();
+        cache.forEach((key, value) -> {
+            if (value.createdAt().plusSeconds(fallbackMaxAgeSeconds).isBefore(now)) {
+                keysToRemove.add(key);
+            }
+        });
+        keysToRemove.forEach(cache::remove);
     }
 
     private record CacheEntry(SessionResponse session, Instant createdAt, Instant expiresAt) {
